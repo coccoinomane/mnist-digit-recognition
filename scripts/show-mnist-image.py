@@ -8,16 +8,19 @@ where
   -  <split> is either 'train' or 'test' to select the specific MNIST dataset
   
 Example:
-    $ python show-mnist-image.py 5 train
+    $ python -m scripts.show-mnist-image 5 train
 
 Requires the 'datasets' library:
     $ pip install datasets
+
+Github Gist available at:
+  - https://gist.github.com/coccoinomane/8de713a06b0b9cb43b621197f60ecb75
 """
 
 import sys
 from datasets import load_dataset
 
-usage = "Usage: show-mnist-image.py <index> <split>"
+usage = "Usage: python -m scripts.show-mnist-image <index> <split>"
 
 if len(sys.argv) != 3:
     print(usage)

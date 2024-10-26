@@ -38,3 +38,7 @@ htmlcov/
 nosetests.xml
 coverage.xml
 *.cover
+
+# Etc
+.mypy_cache
+.DS_Store
