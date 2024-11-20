@@ -18,8 +18,8 @@ import numpy as np
 n = 28 * 28  # Number of pixels in each image, also dimension of input layer
 n_hidden = 10  # Number of neurons in the hidden layer
 n_output = 10  # Number of possible outputs (0-9 digits), same as output layer
-epochs = 1_000  # Number of times the training set is passed through the network
-learning_rate = 10  # How much the weights are updated at each iteration
+epochs = 500  # Number of times the training set is passed through the network
+learning_rate = 1  # How much the weights are updated at each iteration
 mnist_sample_size = 60_000  # Number of samples in the MNIST training set
 
 
@@ -51,20 +51,26 @@ def init_params():
 
 def loss(Y, A2):
     """
-    Compute the loss of the neural network as the total square error of
-    the final layer.  The loss is a measure of how wrong the network is
-    in its predictions across all the images in the training set.  It is
-    a 1 x 60,000 vector (see eq. 3 of Rumelhart et al. 1986).
-    """
-    return np.sum((A2 - Y) ** 2, axis=0) / 2
+    Compute the error of a neural network prediction A2 with respect to
+    the true values Y.
 
+    The cross-entropy loss function is defined as:
+    L = -Σᵢ yᵢ log(aᵢ)
+    where yᵢ is the true value of the i-th neuron in the output layer,
+    and aᵢ is the predicted value of the i-th neuron in the output layer.
+    The loss is then summed over all the samples in the dataset to obtain
+    a single scalar value.  More details can be found here:
+    https://ml-cheatsheet.readthedocs.io/en/latest/loss_functions.html
 
-def loss_derivative(Y, A2):
+    The cross-entropy is the most used loss function in classification
+    problems, because it leads to a cancellation of terms in the
+    backpropagation algorithm that simplifies the computation of the
+    gradients.  More specifically, the cancelation happens in the
+    ubiquitous term ∂L/∂z term that reduces to Y_predicted - Y_true,
+    where z is the unactivated output of the final layer. More details
+    at https://shivammehta25.github.io/posts/deriving-categorical-cross-entropy-and-softmax/
     """
-    Compute the derivative of the loss function with respect to the
-    activated output of the final layer.  It is a 10 x 60,000 matrix
-    """
-    return A2 - Y
+    return -np.sum(Y * np.log(A2))  # Add small value to avoid log(0)
 
 
 def ReLU(Z):
@@ -91,31 +97,10 @@ def softmax(Z):
     layer into a [0,1] probability.  Z is a 10 x 60,000 matrix, where
     each column represents the output of the final layer for a single image.
     """
-    # Check for overflow
     if np.any(Z > 709):
         raise ValueError("Overflow in softmax function")
-    # Subtract max value for numerical stability
-    Z = Z - np.max(Z, axis=0, keepdims=True)
     exp_Z = np.exp(Z)
-    return exp_Z / (np.sum(exp_Z, axis=0, keepdims=True) + 1e-8)  # Add small value to denominator
-    print(np.max(Z, axis=0, keepdims=True))
-    return exp_Z / np.sum(exp_Z, axis=0, keepdims=True)
-
-
-def softmax_derivative(Z):
-    """
-    Compute the derivative of the softmax function, as a function of the
-    unactivated output of the final layer.
-    """
-    return softmax(Z) * (1 - softmax(Z))
-
-
-def softmax_derivative_as_a_function_of_A(A):
-    """
-    Compute the derivative of the softmax function, as a function of the
-    activated output of the final layer.
-    """
-    return A * (1 - A)
+    return exp_Z / (np.sum(exp_Z, axis=0, keepdims=True))
 
 
 def forward_propagation(X, W1, b1, W2, b2):
@@ -175,7 +160,10 @@ def back_propagation(X, Y, W1, b1, W2, b2, Z1, A1, Z2, A2, learning_rate=0.01):
     # gradient of the loss function with respect to the weights and biases
     # of the network for all cases in the dataset at once, by using matrix
     # multiplication.
-    δM = loss_derivative(Y, A2) * softmax_derivative_as_a_function_of_A(A2)
+    δM = A2 - Y
+    # ^^^ δM = ∂L/∂x_last has the very simple form A2 - Y thanks to the choice
+    # of the cross-entropy loss function and the softmax activation function,
+    # see the comment above the loss function definition.
     dL_dW2 = δM @ A1.T / n_samples
 
     # Check that the gradient has the expected shape

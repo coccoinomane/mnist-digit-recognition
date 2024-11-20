@@ -44,6 +44,8 @@ def ReLU(Z):
 
 
 def softmax(Z):
+    # Why summing over the whole dataset?  It should sum only
+    # over the neurons
     A = np.exp(Z) / sum(np.exp(Z))
     return A
 
@@ -69,8 +71,13 @@ def one_hot(Y):
 
 def backward_prop(Z1, A1, Z2, A2, W1, W2, X, Y):
     one_hot_Y = one_hot(Y)
+    # dZ2 in Samson notation is our δM
     dZ2 = A2 - one_hot_Y  # this comes from the cross-entropy loss function
+    # dW2 in Samson notation is our ∂L/∂W2
     dW2 = 1 / m * dZ2.dot(A1.T)
+    # db2 in Samson notation is our ∂L/∂b2, however, Samson
+    # sums over all elements, so he gets a scalar, while we
+    # get a vector...  this applies to his db1 as well
     db2 = 1 / m * np.sum(dZ2)
     dZ1 = W2.T.dot(dZ2) * ReLU_deriv(Z1)
     dW1 = 1 / m * dZ1.dot(X.T)
