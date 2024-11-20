@@ -15,4 +15,4 @@ disallow_any_unimported = false
 disallow_untyped_calls = false
 
 [tool.black]
-line-length = 88
+line-length = 100
