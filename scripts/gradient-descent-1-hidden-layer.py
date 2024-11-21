@@ -21,7 +21,7 @@ from src.helpers.mnist import load_minst_dataset_from_data_folder
 import numpy as np
 import argparse
 
-# Parse command line arguments
+# PARSE CLI ARGUMENTS
 parser = argparse.ArgumentParser(description="Train a neural network on the MNIST dataset.")
 parser.add_argument(
     "--n_hidden", type=int, default=10, help="Number of neurons in the hidden layer"
@@ -35,7 +35,7 @@ parser.add_argument(
 parser.add_argument(
     "--learning_rate",
     type=float,
-    default=0.5,
+    default=0.2,
     help="How much the weights are updated at each iteration",
 )
 args = parser.parse_args()
