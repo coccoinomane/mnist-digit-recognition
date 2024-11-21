@@ -5,6 +5,9 @@ Documentation in the README or at https://github.com/coccoinomane/ai-digit-recog
 from src.helpers.mnist import load_minst_dataset_from_data_folder
 import numpy as np
 import argparse
+from src.helpers.activations import ReLU, ReLU_derivative, softmax
+from src.helpers.loss_functions import cross_entropy_loss as loss
+from src.helpers.misc import get_predictions, get_accuracy, one_hot_encode
 
 # PARSE CLI ARGUMENTS
 parser = argparse.ArgumentParser(description="Train a neural network on the MNIST dataset.")
@@ -73,60 +76,6 @@ def init_params():
         raise ValueError(f"Unknown initialization method: {args.initial_params}")
 
     return W1, b1, W2, b2
-
-
-def loss(Y, A2):
-    """
-    Compute the error of a neural network prediction A2 with respect to
-    the true values Y.
-
-    The cross-entropy loss function is defined as:
-    L = -Σᵢ yᵢ log(aᵢ)
-    where yᵢ is the true value of the i-th neuron in the output layer,
-    and aᵢ is the predicted value of the i-th neuron in the output layer.
-    The loss is then summed over all the samples in the dataset to obtain
-    a single scalar value.  More details can be found here:
-    https://ml-cheatsheet.readthedocs.io/en/latest/loss_functions.html
-
-    The cross-entropy is the most used loss function in classification
-    problems, because it leads to a cancellation of terms in the
-    backpropagation algorithm that simplifies the computation of the
-    gradients.  More specifically, the cancelation happens in the
-    ubiquitous term ∂L/∂z term that reduces to Y_predicted - Y_true,
-    where z is the unactivated output of the final layer. More details
-    at https://shivammehta25.github.io/posts/deriving-categorical-cross-entropy-and-softmax/
-    """
-    return -np.sum(Y * np.log(A2))  # Add small value to avoid log(0)
-
-
-def ReLU(Z):
-    """
-    Activation function for the input layer (and for the intermediate
-    layers, if any).  Without the activation function, the layers would
-    only output linear combinations of the initial input, which would make the
-    whole network equivalent to a single layer.
-    TODO: What if we use min(0, Z) instead of max(0, Z)?
-    """
-    return np.maximum(Z, 0)
-
-
-def ReLU_derivative(Z):
-    """
-    Compute the derivative of the ReLU function.
-    """
-    return Z > 0
-
-
-def softmax(Z):
-    """
-    Function that converts the output of each neuron in the final
-    layer into a [0,1] probability.  Z is a 10 x 60,000 matrix, where
-    each column represents the output of the final layer for a single image.
-    """
-    if np.any(Z > 709):
-        raise ValueError("Overflow in softmax function")
-    exp_Z = np.exp(Z)
-    return exp_Z / (np.sum(exp_Z, axis=0, keepdims=True))
 
 
 def forward_propagation(X, W1, b1, W2, b2):
@@ -238,50 +187,6 @@ def back_propagation(X, Y, W1, b1, W2, b2, Z1, A1, Z2, A2, learning_rate=0.01):
     return W1, b1, W2, b2
 
 
-def get_predictions(A2):
-    """
-    Get the predictions (Y) out of the activated output of the
-    final layer (A2).
-
-    Y is a 60,000 x 1 vector with the predicted digit for
-    each image.
-
-    A2 is a 10 x 60,000 matrix, where each column contains the
-    probabilities of each digit (0-9) for a single image.
-    """
-    # argmax returns the indices of the maximum values along an axis.
-    return np.argmax(A2, axis=0)
-
-
-def get_accuracy(Y, Y_pred):
-    """
-    Compute the accuracy of the predictions.
-    """
-    return np.mean(Y == Y_pred)
-
-
-def loss_function(Y, A2):
-    """
-    Compute the loss function of the neural network.
-    This is how wrong the network is in its predictions.
-    For a given image, it is given by the difference between
-    the predicted probability A2, a vector with 10 elements,
-    and the actual probability Y, a vector with 9 zero elements
-    and a single 1 element in the position of the actual digit.
-    """
-    return A2 - Y  # 10 x 60,000 matrix
-
-
-def one_hot_encode(Y):
-    """
-    Convert the labels of the training set into one-hot encoding.
-    """
-    Y_one_hot = np.zeros((n_output, Y.shape[0]))
-    for i, y in enumerate(Y):
-        Y_one_hot[y, i] = 1
-    return Y_one_hot
-
-
 def print_params_info(W1, b1, W2, b2):
     print(f" - W1: {W1.shape}, min: {np.min(W1)}, max: {np.max(W1)}, mean: {np.mean(W1)}")
     print(f" - b1: {b1.shape}, min: {np.min(b1)}, max: {np.max(b1)}, mean: {np.mean(b1)}")
@@ -322,7 +227,7 @@ print(f" - X_train: {X_train.shape}, min: {np.min(X_train)}, max: {np.max(X_trai
 print(f" - Y_train: {Y_train.shape}, min: {np.min(Y_train)}, max: {np.max(Y_train)}")
 print(f" - X_test: {X_test.shape}, min: {np.min(X_test)}, max: {np.max(X_test)}")
 print(f" - Y_test: {Y_test.shape}, min: {np.min(Y_test)}, max: {np.max(Y_test)}")
-print(f" - one hot encoding of Y_train: {one_hot_encode(Y_train).shape}")
+print(f" - one hot encoding of Y_train: {one_hot_encode(Y_train, n_output).shape}")
 
 # Get initial parameters
 W1, b1, W2, b2 = init_params()
@@ -343,7 +248,7 @@ acc = get_accuracy(Y_train, Y_pred)
 print("Accuracy without training should be around 10%:", acc)
 
 # Train the neural network
-Y_train_one_hot = one_hot_encode(Y_train)
+Y_train_one_hot = one_hot_encode(Y_train, n_output)
 W1, b1, W2, b2 = train(X_train, Y_train_one_hot, W1, b1, W2, b2, epochs=epochs)
 
 # Feed the training samples to the neural network
