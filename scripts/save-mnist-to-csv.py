@@ -18,14 +18,10 @@ data_folder = "data/"
 X_train, Y_train, X_test, Y_test = load_mnist_datasets(normalize=True)
 print(f"MNIST dataset downlaoded, X_train:", X_train.shape)
 
-# Save the training set
-np.savetxt(
-    f"{data_folder}mnist_train.csv.gz", np.c_[Y_train, X_train], delimiter=",", fmt="%d"
-)
-print(f"Training set saved at {data_folder}mnist_train.csv")
+# Save the training set.  The fmt is impoertant.
+np.savetxt(f"{data_folder}mnist_train.csv.gz", np.c_[Y_train, X_train], delimiter=",", fmt="%g")
+print(f"Training set saved at {data_folder}mnist_train.csv.gz")
 
 # Save the test set
-np.savetxt(
-    f"{data_folder}mnist_test.csv.gz", np.c_[Y_test, X_test], delimiter=",", fmt="%d"
-)
-print(f"Test set saved at {data_folder}mnist_test.csv")
+np.savetxt(f"{data_folder}mnist_test.csv.gz", np.c_[Y_test, X_test], delimiter=",", fmt="%g")
+print(f"Test set saved at {data_folder}mnist_test.csv.gz")

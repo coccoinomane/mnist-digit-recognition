@@ -19,7 +19,7 @@ n = 28 * 28  # Number of pixels in each image, also dimension of input layer
 n_hidden = 10  # Number of neurons in the hidden layer
 n_output = 10  # Number of possible outputs (0-9 digits), same as output layer
 epochs = 500  # Number of times the training set is passed through the network
-learning_rate = 1  # How much the weights are updated at each iteration
+learning_rate = 0.5  # How much the weights are updated at each iteration
 mnist_sample_size = 60_000  # Number of samples in the MNIST training set
 
 
@@ -270,7 +270,7 @@ def train(X, Y, W1, b1, W2, b2, epochs=1000):
     for epoch in range(epochs):
         Z1, A1, Z2, A2 = forward_propagation(X, W1, b1, W2, b2)
         W1, b1, W2, b2 = back_propagation(X, Y, W1, b1, W2, b2, Z1, A1, Z2, A2, learning_rate)
-        if epoch % 100 == 0:
+        if epoch % 25 == 0:
             print(f"Epoch {epoch}")
             print(f" - Loss: {np.mean(loss(Y, A2))}")
             Y_pred = get_predictions(A2)
@@ -322,14 +322,14 @@ W1, b1, W2, b2 = train(X_train, Y_train_one_hot, W1, b1, W2, b2, epochs=epochs)
 
 # Feed the training samples to the neural network
 Z1, A1, Z2, A2 = forward_propagation(X_train, W1, b1, W2, b2)
-print("Accuracy on TRAINING set:")
+print("Final accuracy on TRAINING set:")
 Y_pred = get_predictions(A2)
 acc = get_accuracy(Y_train, Y_pred)
 print(f" - Accuracy: {acc}")
 
 # Feed the test samples to the neural network
 Z1, A1, Z2, A2 = forward_propagation(X_test, W1, b1, W2, b2)
-print("Accuracy on TEST set:")
+print("Final accuracy on TEST set:")
 Y_pred = get_predictions(A2)
 acc = get_accuracy(Y_test, Y_pred)
 print(f" - Accuracy: {acc}")

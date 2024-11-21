@@ -62,12 +62,8 @@ def load_minst_dataset_from_data_folder():
     """
     data_folder = "data/"
     try:
-        X_train = np.loadtxt(
-            f"{data_folder}mnist_train.csv.gz", delimiter=",", skiprows=0
-        )
-        X_test = np.loadtxt(
-            f"{data_folder}mnist_test.csv.gz", delimiter=",", skiprows=0
-        )
+        X_train = np.loadtxt(f"{data_folder}mnist_train.csv.gz", delimiter=",", skiprows=0)
+        X_test = np.loadtxt(f"{data_folder}mnist_test.csv.gz", delimiter=",", skiprows=0)
     except FileNotFoundError:
         raise FileNotFoundError(
             "The MNIST dataset is not available.  Please run the script save-mnist-csv.py."

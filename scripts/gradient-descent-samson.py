@@ -12,7 +12,6 @@ from matplotlib import pyplot as plt
 # https://www.kaggle.com/competitions/digit-recognizer/data)
 data = pd.read_csv("data/kaggle/train.csv")
 
-# ignore mypy here
 data = np.array(data)  # type: ignore
 m, n = data.shape
 np.random.shuffle(data)  # shuffle before splitting into dev and training sets
@@ -115,4 +114,4 @@ def gradient_descent(X, Y, alpha, iterations):
     return W1, b1, W2, b2
 
 
-W1, b1, W2, b2 = gradient_descent(X_train, Y_train, 0.10, 500)
+W1, b1, W2, b2 = gradient_descent(X_train, Y_train, 0.50, 500)
