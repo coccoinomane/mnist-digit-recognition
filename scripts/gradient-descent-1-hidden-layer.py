@@ -9,17 +9,44 @@ standalone implementation of a neural network with one hidden layer.
 
 Inspired by Samson Zhang great tutorial:
 - https://www.youtube.com/watch?v=w8yWXqWQYmU
+With respect to Samson's tutorial, the following changes were made:
+- Feat: Variable number of neurons in the hidden layer
+- Fix: Bias correctly a vector now, rather than a scalar
+- Fix: Sum in softmax denominator now includes each image separately, rather than
+  summing over whole dataset
 """
 
 from src.helpers.mnist import load_minst_dataset_from_data_folder
 import numpy as np
+import argparse
+
+# Parse command line arguments
+parser = argparse.ArgumentParser(description="Train a neural network on the MNIST dataset.")
+parser.add_argument(
+    "--n_hidden", type=int, default=10, help="Number of neurons in the hidden layer"
+)
+parser.add_argument(
+    "--epochs",
+    type=int,
+    default=500,
+    help="Number of times the training set is passed through the network",
+)
+parser.add_argument(
+    "--learning_rate",
+    type=float,
+    default=0.5,
+    help="How much the weights are updated at each iteration",
+)
+args = parser.parse_args()
 
 # HYPERPARAMETERS
+n_hidden = args.n_hidden
+epochs = args.epochs
+learning_rate = args.learning_rate
+
+# FIXED PARAMETERS
 n = 28 * 28  # Number of pixels in each image, also dimension of input layer
-n_hidden = 10  # Number of neurons in the hidden layer
 n_output = 10  # Number of possible outputs (0-9 digits), same as output layer
-epochs = 500  # Number of times the training set is passed through the network
-learning_rate = 0.5  # How much the weights are updated at each iteration
 mnist_sample_size = 60_000  # Number of samples in the MNIST training set
 
 
