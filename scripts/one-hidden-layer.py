@@ -197,6 +197,8 @@ def print_params_info(W1, b1, W2, b2):
 def train(X, Y, W1, b1, W2, b2, epochs=1000):
     """
     Train the neural network.
+
+    Y must be a one-hot encoded vector.
     """
     for epoch in range(epochs):
         Z1, A1, Z2, A2 = forward_propagation(X, W1, b1, W2, b2)
