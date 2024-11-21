@@ -11,6 +11,7 @@ Inspired by Samson Zhang great tutorial:
 - https://www.youtube.com/watch?v=w8yWXqWQYmU
 With respect to Samson's tutorial, the following changes were made:
 - Feat: Variable number of neurons in the hidden layer
+- Feat: Use He initialization for the weights leading to faster convergence
 - Fix: Bias correctly a vector now, rather than a scalar
 - Fix: Sum in softmax denominator now includes each image separately, rather than
   summing over whole dataset
@@ -56,16 +57,16 @@ def init_params():
     """
 
     # Initialization by Samson Zhang:
-    W1 = np.random.rand(n_hidden, n) - 0.5  # 32 x 784 numbers between 0 and 1
-    b1 = np.random.rand(n_hidden, 1) - 0.5  # 32 x 1 numbers between -0.5 and 0.5
-    W2 = np.random.rand(n_output, n_hidden) - 0.5  # 10 x 32 numbers between 0 and 1
-    b2 = np.random.rand(n_output, 1) - 0.5  # 10 x 1 numbers between -0.5 and 0.5
+    # W1 = np.random.rand(n_hidden, n) - 0.5  # 32 x 784 numbers between 0 and 1
+    # b1 = np.random.rand(n_hidden, 1) - 0.5  # 32 x 1 numbers between -0.5 and 0.5
+    # W2 = np.random.rand(n_output, n_hidden) - 0.5  # 10 x 32 numbers between 0 and 1
+    # b2 = np.random.rand(n_output, 1) - 0.5  # 10 x 1 numbers between -0.5 and 0.5
 
     # He initializiation suggested by Copilot:
-    # W1 = np.random.randn(n_hidden, n) * np.sqrt(2. / n)  # He initialization
-    # b1 = np.zeros((n_hidden, 1))
-    # W2 = np.random.randn(n_output, n_hidden) * np.sqrt(2. / n_hidden)  # He initialization
-    # b2 = np.zeros((n_output, 1))
+    W1 = np.random.randn(n_hidden, n) * np.sqrt(2.0 / n)
+    b1 = np.zeros((n_hidden, 1))
+    W2 = np.random.randn(n_output, n_hidden) * np.sqrt(2.0 / n_hidden)
+    b2 = np.zeros((n_output, 1))
 
     # Gaussian initialization suggested by Copilot:
     # W1 = np.random.randn(n_hidden, n) * 0.01  # 32 x 784 matrix
