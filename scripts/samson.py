@@ -1,15 +1,19 @@
 """
 Digit recognition model trained on MNIST dataset, using code of Samson Zhang
 at https://www.kaggle.com/code/wwsalmon/simple-mnist-nn-from-scratch-numpy-no-tf-keras
+
+In order to use this code:
+1. Unzip data/mnist-from-kaggle.zip
+2. Copy resulting train.csv file into data/kaggle folder
+
+The dataset was downloaded from Kaggle using the following link:
+- https://www.kaggle.com/competitions/digit-recognizer/data)
 """
 
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-# Unzip mnist-from-kaggle.zip and put resulting train.csv file
-# in data/kaggle folder (file downloaded from
-# https://www.kaggle.com/competitions/digit-recognizer/data)
 data = pd.read_csv("data/kaggle/train.csv")
 
 data = np.array(data)  # type: ignore
@@ -114,4 +118,4 @@ def gradient_descent(X, Y, alpha, iterations):
     return W1, b1, W2, b2
 
 
-W1, b1, W2, b2 = gradient_descent(X_train, Y_train, 0.50, 500)
+W1, b1, W2, b2 = gradient_descent(X_train, Y_train, 0.1, 500)

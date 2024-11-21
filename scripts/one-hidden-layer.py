@@ -1,20 +1,5 @@
 """
-Train a neural-network model for digit recognition on the MNIST dataset,
-and get predictions out of it for a test set of 10,000 handwritten digits.
-
-Usage: python -m scripts.gradient-descent-standalone-1-hidden-layer
-
-The script does not make use of any deep-learning framework, as it is a
-standalone implementation of a neural network with one hidden layer.
-
-Inspired by Samson Zhang great tutorial:
-- https://www.youtube.com/watch?v=w8yWXqWQYmU
-With respect to Samson's tutorial, the following changes were made:
-- Feat: Variable number of neurons in the hidden layer
-- Feat: Use He initialization for the weights leading to faster convergence
-- Fix: Bias correctly a vector now, rather than a scalar
-- Fix: Sum in softmax denominator now includes each image separately, rather than
-  summing over whole dataset
+Documentation in the README or at https://github.com/coccoinomane/ai-digit-recognition
 """
 
 from src.helpers.mnist import load_minst_dataset_from_data_folder
@@ -38,6 +23,13 @@ parser.add_argument(
     default=0.2,
     help="How much the weights are updated at each iteration",
 )
+parser.add_argument(
+    "--initial_params",
+    type=str,
+    default="he",
+    help="Initialization method for the weights",
+    choices=["he", "gaussian", "samson"],
+)
 args = parser.parse_args()
 
 # HYPERPARAMETERS
@@ -56,23 +48,29 @@ def init_params():
     Initialize weights and biases for the neural network.
     """
 
-    # Initialization by Samson Zhang:
-    # W1 = np.random.rand(n_hidden, n) - 0.5  # 32 x 784 numbers between 0 and 1
-    # b1 = np.random.rand(n_hidden, 1) - 0.5  # 32 x 1 numbers between -0.5 and 0.5
-    # W2 = np.random.rand(n_output, n_hidden) - 0.5  # 10 x 32 numbers between 0 and 1
-    # b2 = np.random.rand(n_output, 1) - 0.5  # 10 x 1 numbers between -0.5 and 0.5
+    if args.initial_params == "samson":
+        # Samson Zhang's initialization
+        W1 = np.random.rand(n_hidden, n) - 0.5  # 32 x 784 numbers between 0 and 1
+        b1 = np.random.rand(n_hidden, 1) - 0.5  # 32 x 1 numbers between -0.5 and 0.5
+        W2 = np.random.rand(n_output, n_hidden) - 0.5  # 10 x 32 numbers between 0 and 1
+        b2 = np.random.rand(n_output, 1) - 0.5  # 10 x 1 numbers between -0.5 and 0.5
 
-    # He initializiation suggested by Copilot:
-    W1 = np.random.randn(n_hidden, n) * np.sqrt(2.0 / n)
-    b1 = np.zeros((n_hidden, 1))
-    W2 = np.random.randn(n_output, n_hidden) * np.sqrt(2.0 / n_hidden)
-    b2 = np.zeros((n_output, 1))
+    elif args.initial_params == "he":
+        # He initializiation suggested by Copilot:
+        W1 = np.random.randn(n_hidden, n) * np.sqrt(2.0 / n)
+        b1 = np.zeros((n_hidden, 1))
+        W2 = np.random.randn(n_output, n_hidden) * np.sqrt(2.0 / n_hidden)
+        b2 = np.zeros((n_output, 1))
 
-    # Gaussian initialization suggested by Copilot:
-    # W1 = np.random.randn(n_hidden, n) * 0.01  # 32 x 784 matrix
-    # b1 = np.zeros((n_hidden, 1))  # 32 x 1 vector
-    # W2 = np.random.randn(n_output, n_hidden) * 0.01  # 10 x 32 matrix
-    # b2 = np.zeros((n_output, 1))  # 10 x 1 vector
+    elif args.initial_params == "gaussian":
+        # Gaussian initialization suggested by Copilot:
+        W1 = np.random.randn(n_hidden, n) * 0.01  # 32 x 784 matrix
+        b1 = np.zeros((n_hidden, 1))  # 32 x 1 vector
+        W2 = np.random.randn(n_output, n_hidden) * 0.01  # 10 x 32 matrix
+        b2 = np.zeros((n_output, 1))  # 10 x 1 vector
+
+    else:
+        raise ValueError(f"Unknown initialization method: {args.initial_params}")
 
     return W1, b1, W2, b2
 
