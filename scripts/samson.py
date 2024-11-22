@@ -1,37 +1,33 @@
 """
 Digit recognition model trained on MNIST dataset, using code of Samson Zhang
 at https://www.kaggle.com/code/wwsalmon/simple-mnist-nn-from-scratch-numpy-no-tf-keras
-
-In order to use this code:
-1. Unzip data/mnist-from-kaggle.zip
-2. Copy resulting train.csv file into data/kaggle folder
-
-The dataset was downloaded from Kaggle using the following link:
-- https://www.kaggle.com/competitions/digit-recognizer/data)
 """
 
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
+from src.helpers.mnist import load_minst_dataset_from_data_folder
 
-data = pd.read_csv("data/kaggle/train.csv")
+# Use ylecun/mnist dataset from Hugging Face
+X_train, Y_train, X_dev, Y_dev = load_minst_dataset_from_data_folder()
+X_train = X_train.T
+X_dev = X_dev.T
+_, m = X_train.shape
 
-data = np.array(data)  # type: ignore
-m, n = data.shape
-np.random.shuffle(data)  # shuffle before splitting into dev and training sets
-
-data_train = data[1000:m].T
-Y_train = data_train[0]
-X_train = data_train[1:n]
-X_train = X_train / 255.0
-_, m_train = X_train.shape
-
-# Use ylecun/mnist dataset from Hugging Face, instead
-# from src.helpers.mnist import load_minst_dataset_from_data_folder
-# X_train, Y_train, X_dev, Y_dev = load_minst_dataset_from_data_folder()
-# X_train = X_train.T
-# X_dev = X_dev.T
-# _, m = X_train.shape
+# Uncomment to use Samson's original MNIST dataset; result should not change
+# much.
+# In order to to do:
+# 1. Download https://www.kaggle.com/competitions/digit-recognizer/data)
+# 2. Unzip
+# 3. Copy resulting train.csv file into data/kaggle folder
+# data = pd.read_csv("data/kaggle/train.csv")
+# data = np.array(data)  # type: ignore
+# m, n = data.shape
+# np.random.shuffle(data)  # shuffle before splitting into dev and training sets
+# data_train = data[1000:m].T
+# Y_train = data_train[0]
+# X_train = data_train[1:n]
+# X_train = X_train / 255.0
 
 
 def init_params():
