@@ -4,8 +4,6 @@ at https://www.kaggle.com/code/wwsalmon/simple-mnist-nn-from-scratch-numpy-no-tf
 """
 
 import numpy as np
-import pandas as pd
-from matplotlib import pyplot as plt
 from src.helpers.mnist import load_minst_dataset_from_data_folder
 
 # Use ylecun/mnist dataset from Hugging Face

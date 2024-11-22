@@ -1,15 +1,21 @@
 """
-Same as one-hidden-layer.py, but with a variable number hidden layers
-that can be specified via the CLI.
+Train a neural-network model for digit recognition on the MNIST
+dataset with an arbitrary number of hidden layers.
 
-For example, running
-$ python -m scripts.many-hidden-layers --n_hidden 32 16 8
-will create a neural network with three hidden layers, the first with 32
-neurons, the second with 16 neurons and the third with 8 neurons.
-By default, the network has two layers with 32 and 16 neurons, respectively.
+For example, running the following command:
 
-TODO: Why so much slower than one-hidden-layer.py when using the same
-      number of neurons and epochs?
+$ python -m scripts.main --n_hidden 32 16 --epochs 150 --learning_rate 0.2
+
+will train a neural network with two hidden layers, the first with 32
+neurons, and the second with 16 neurons, for 150 epochs thus achieving
+92% precision.
+
+Parameters:
+- n_hidden: Number of neurons in each hidden layer, separated by spaces;
+    default is "32 16"
+- epochs: Number of times the training set is passed through the network
+- learning_rate: How much the weights are updated at each iteration
+- initial_params: Initialization method for the weights (he, gaussian, samson)
 """
 
 from src.helpers.mnist import load_minst_dataset_from_data_folder
@@ -158,26 +164,58 @@ def back_propagation(X, Y, W, b, Z, A, learning_rate):
     n_samples = X.shape[1]
 
     # Initialize the gradients
-    δM = [None] * n_layers  # gradient of the loss function wrt the unactivated output
-    dL_dW = [None] * n_layers  # gradient of the loss function wrt the weights
-    dL_db = [None] * n_layers  # gradient of the loss function wrt the biases
+    δ = [None] * (n_layers - 1)  # gradient of the loss function wrt the unactivated output
+    dL_dW = [None] * (n_layers - 1)  # gradient of the loss function wrt the weights
+    dL_db = [None] * (n_layers - 1)  # gradient of the loss function wrt the biases
 
     # Backward propagation is an iterative process that starts from the output
-    # layer, therefore we need to initialize the output layer manually. The only
-    # variable that we need to initialize is δM[i], which is the gradient of the
-    # loss function wrt the unactivated output of the i-th layer.
-    # Note: there is no need to persist the δM[i] values, because they are only
-    # used to compute the gradients of the weights and biases, and then discarded.
-    # We do it here for clarity.
-    δM[-1] = A[-1] - Y  # very simple thanks to the cross-entropy loss function
-    for i in range(n_layers - 1, 0, -1):  # if n_layers = 4, then i = 3, 2, 1
-        δM[i - 1] = W[i - 1].T @ δM[i] * ReLU_derivative(Z[i - 1])
+    # layer.  This means that we need to initialize the values for the output
+    # layer manually.
+    # The only variable on the output layer that we need to initialize is
+    #  δ_last = ∂L/∂Z_last
+    # that is, the gradient of the loss function with respect to the input
+    # to the output layer (Z_last).
+    # Regardles of the number of layers in the network, we have:
+    #  δ_last = A_last - Y
+    # where A_last is the prediction of the betwork (that is, the activated
+    # output of the output layer), and Y is the one-hot encoded target vector.
+    # This simple result follow from to the choice of the cross-entropy loss
+    # function and the softmax activation function.
+    δ = A[-1] - Y
+    # For the preceding layers, δ can be computed iteratively:
+    #  δ[i-1] = W[i].T @ δ[i] * ReLU_derivative(Z[i])
+    # where W[i] is the weight matrix connecting layer i to layer i+1,
+    # For example, for a network with 1 hidden layer, we have:
+    #  δ[1] = A[1] - Y
+    #  δ[0] = W[1].T @ δ[1] * ReLU_derivative(Z[1])
+    # For a network with 2 hidden layers, we have:
+    #  δ[2] = A[2] - Y
+    #  δ[1] = W[2].T @ δ[2] * ReLU_derivative(Z[2])
+    #  δ[0] = W[1].T @ δ[1] * ReLU_derivative(Z[1])
+    # and so on.
 
-    # Backward propagation starts from the output layer and goes all the way to
-    # the input layer.
-    for i in range(n_layers - 1, 0, -1):  # if n_layers = 4, then i = 3, 2, 1
-        dL_dW[i - 1] = δM[i] @ A[i - 1].T / n_samples
-        dL_db[i - 1] = np.sum(δM[i], axis=1, keepdims=True) / n_samples
+    # Once we know how to compute δ, obtaining the weight gradients is easy:
+    #  dL_dW[i] = δ[i] @ A[i].T / n_samples
+    # where A[i] is the activated output of layer i, and n_samples is the number
+    # of samples in the dataset.  The matrix multiplication δ[i] @ A[i].T takes
+    # care of summing the gradients over all samples in the dataset, hence the
+    # division by n_samples which returns the average gradient.
+    # For the bias gradients, we can use this formula:
+    #  dL_db[i] = Σₖ δ[i]ₖ / n_samples
+    # where δ[i]ₖ is the k-th element of the δ[i] vector.
+    # For example, the gradients of a network with 2 hidden layers is:
+    #  dL_dW[2] = δ[2] @ A[2].T / n
+    #  dL_db[2] = Σₖ δ[2]ₖ / n
+    #  dL_dW[1] = δ[1] @ A[1].T / n
+    #  dL_db[1] = Σₖ δ[1]ₖ / n
+    #  dL_dW[0] = δ[0] @ A[0].T / n (where A[0] = X)
+    #  dL_db[0] = Σₖ δₖ[0] / n
+    for i in reversed(range(n_layers - 1)):
+        dL_dW[i] = δ @ A[i].T / n_samples
+        dL_db[i] = np.sum(δ, axis=1, keepdims=True) / n_samples
+        # Compute δ for the lower layer
+        if i > 0:  # no need for δ for the input layer
+            δ = W[i].T @ δ * ReLU_derivative(Z[i])
 
     # Check the resulting shapes
     for i in range(n_layers - 1):
@@ -194,55 +232,6 @@ def back_propagation(X, Y, W, b, Z, A, learning_rate):
     for i in range(n_layers - 1):
         W[i] -= learning_rate * dL_dW[i]
         b[i] -= learning_rate * dL_db[i]
-
-    # δM = A2 - Y
-    # # ^^^ δM = ∂L/∂x_last has the very simple form A2 - Y thanks to the choice
-    # # of the cross-entropy loss function and the softmax activation function,
-    # # see the comment above the loss function definition.
-    # dL_dW2 = δM @ A1.T / n_samples
-
-    # # Check that the gradient has the expected shape
-    # if dL_dW2.shape != W2.shape:
-    #     raise ValueError(f"Gradient dL_dW2 shape {dL_dW2.shape} does not match W2 shape {W2.shape}")
-
-    # # The gradient wrt to the bias for a single datapoint is just the δ vector
-    # # itself, because ∂L/∂b_i = ∂L/∂x_last * ∂x_last/∂b_i = δ_i * 1 = δ_i.
-    # # The average gradient over all cases in the dataset is then:
-    # #  - <∂L/∂b_i> = (1/N) * Σₖ δ[i,k]
-    # # This is just the sum over the rows of δM, resulting in a m x 1 vector.
-    # dL_db2 = np.sum(δM, axis=1, keepdims=True) / n_samples  # keepdims to ensure column vector
-
-    # # Check that the gradient has the expected shape
-    # if dL_db2.shape != b2.shape:
-    #     raise ValueError(f"Gradient dL_db2 shape {dL_db2.shape} does not match b2 shape {b2.shape}")
-
-    # # The gradient wrt to the weights of the first layer is given by:
-    # δM_penultimate = W2.T @ δM * ReLU_derivative(Z1)
-    # dL_dW1 = δM_penultimate @ X.T / n_samples
-
-    # # Check that the gradient has the expected shape
-    # if dL_dW1.shape != W1.shape:
-    #     raise ValueError(f"Gradient dL_dW1 shape {dL_dW1.shape} does not match W1 shape {W1.shape}")
-
-    # # The gradient wrt to the bias for the first layer is given by:
-    # dL_db1 = np.sum(δM_penultimate, axis=1, keepdims=True) / n_samples
-
-    # # Check that the gradient has the expected shape
-    # if dL_db1.shape != b1.shape:
-    #     raise ValueError(f"Gradient dL_db1 shape {dL_db1.shape} does not match b1 shape {b1.shape}")
-
-    # # Update the parameters
-    # W2 -= learning_rate * dL_dW2
-    # b2 -= learning_rate * dL_db2
-    # W1 -= learning_rate * dL_dW1
-    # b1 -= learning_rate * dL_db1
-
-    # # Debug: print the magnitude of the gradients compared to the weights
-    # # print("Gradient magnitudes:")
-    # # print(" - dL_dW2:", np.linalg.norm(dL_dW2) / np.linalg.norm(W2))
-    # # print(" - dL_db2:", np.linalg.norm(dL_db2) / np.linalg.norm(b2))
-    # # print(" - dL_dW1:", np.linalg.norm(dL_dW1) / np.linalg.norm(W1))
-    # # print(" - dL_db1:", np.linalg.norm(dL_db1) / np.linalg.norm(b1))
 
     return W, b
 

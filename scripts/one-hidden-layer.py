@@ -1,5 +1,17 @@
 """
-Documentation in the README or at https://github.com/coccoinomane/ai-digit-recognition
+Train a neural-network model for digit recognition on the MNIST
+dataset with a single hidden layer.
+
+For example, running the following command will train a neural network
+with 10 hidden neurons for 500 epochs thus resulting in about 92% accuracy:
+
+$ python -m scripts.one-hidden-layer --n_hidden 10 --epochs 500 --learning_rate 0.2
+
+Parameters:
+- n_hidden: Number of neurons in the hidden layer
+- epochs: Number of times the training set is passed through the network
+- learning_rate: How much the weights are updated at each iteration
+- initial_params: Initialization method for the weights (he, gaussian, samson)
 """
 
 from src.helpers.mnist import load_minst_dataset_from_data_folder
