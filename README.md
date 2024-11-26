@@ -34,7 +34,28 @@ Arguments:
 - `initial_params` is the initialization method for the weights.  Options are `he`, `gaussian`, `samson` (as in Samson's tutorial)
 
 
-# Samson script
+# Accuracy comparisons
+
+Have fun and compare the accuracy of our script with the results shown in [Yan LeCun's website](https://yann.lecun.com/exdb/mnist/index.html) and in his [1998 paper](https://yann.lecun.com/exdb/publis/pdf/lecun-98.pdf).
+
+Although our model is simpler than most of those considered by LeCun (does not alter the MNIST training by distorting or deslanting images; does not use regularization of loss function; performs gradient average rather than stochastic descent), it achieves a comparable accuracy on the test set.
+
+For example, running the script with a single 300-unit hidden layer yields an error of about 4.5% after 1000 passes, similarly to what LeCun obtains in section 3.C.5 of the paper:
+
+```bash
+python -m scripts.main --n_hidden 300 --learning_rate 0.2 --epochs 1000 --initial_params he
+```
+
+In section 3.C.6 LeCun achieves a 3.05% error by running a NN with two hidden layers of 300 and 100 units, respectively.  Our script yields a similar result with an error of 2.9%, with the following command:
+
+```bash
+python -m scripts.main --n_hidden 300 100 --learning_rate 0.2 --epochs 1000 --initial_params he
+```
+
+It seems there's still room for improvement, as doubling the number of passes to 2000 yields an error of 2.3% on the test set which further decreases to 1.8% for 5000 passes.
+
+
+# Comparison with Samson's script
 
 To run the exact script from [Samson tutorial](https://www.youtube.com/watch?v=w8yWXqWQYmU), run:
 
